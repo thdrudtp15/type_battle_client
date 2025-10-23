@@ -10,7 +10,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/matching" element={<Matching />} />
             <Route path="/result" element={<Result />} />
-            <Route path="/match" element={<Match />} />
+            <Route path="/match/:matchId" element={<Match />} />
         </Routes>
     );
 }
