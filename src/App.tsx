@@ -1,10 +1,17 @@
-import './App.css';
 import Home from './pages/Home';
+import Matching from './pages/Matching';
+import { Routes, Route } from 'react-router-dom';
+import Result from './pages/Result';
+import Match from './pages/match';
+
 function App() {
     return (
-        <div>
-            <Home />
-        </div>
+        <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/matching" element={<Matching />} />
+            <Route path="/result" element={<Result />} />
+            <Route path="/match" element={<Match />} />
+        </Routes>
     );
 }
 
