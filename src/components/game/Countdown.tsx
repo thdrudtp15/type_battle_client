@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 
+import { COUNTDOWN_TIME } from '../../constants/constants';
+
 const Countdown = ({ onStart }: { onStart: () => void }) => {
-    const [count, setCount] = useState<number>(3);
+    const [count, setCount] = useState<number>(COUNTDOWN_TIME);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -13,7 +15,7 @@ const Countdown = ({ onStart }: { onStart: () => void }) => {
             setCount(count - 1);
         }, 1000);
         return () => clearInterval(interval);
-    }, [count]);
+    }, [count, onStart]);
 
     return (
         <div>

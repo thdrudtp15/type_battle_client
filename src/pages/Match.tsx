@@ -1,15 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
-import TypingLog from '../components/game/TypingLog';
-import Input from '../components/ui/Input';
-import Cpm from '../components/game/Cpm';
-import ComparisonText from '../components/ui/ComparisonText';
-import Countdown from '../components/game/Countdown';
-import ElapsedTimer from '../components/game/ElapsedTimer';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-
 import type { TypingLogType } from '../types/typingLog';
+import { getTime } from '../lib/util/getTime';
+import { calculateResult } from '../lib/util/calculateResult';
+import ElapsedTimer from '../components/game/ElapsedTimer';
+import TypingSpeed from '../components/game/TypingSpeed';
+import TypingAccuracy from '../components/game/TypingAccuracy';
+import Countdown from '../components/game/Countdown';
+import TypingLog from '../components/game/TypingLog';
+import ComparisonText from '../components/ui/ComparisonText';
+import Input from '../components/ui/Input';
 
-const SENTENCE = ['안녕하세요 반가워요', '오늘은 날씨가 좋네요'];
+import { SENTENCE } from '../constants/test';
 
 const Match: React.FC = () => {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -18,38 +20,82 @@ const Match: React.FC = () => {
     const [sentenceIndex, setSentenceIndex] = useState<number>(0);
     const [log, setLog] = useState<TypingLogType[]>([]);
     const [isComplete, setIsComplete] = useState<boolean>(false);
+    const [endTime, setEndTime] = useState<number | null>(null);
     const [startTime, setStartTime] = useState<number | null>(null);
+    const [keyDownCount, setKeyDownCount] = useState<number>(0);
 
     const navigate = useNavigate();
+
+    const onStart = useCallback(() => {
+        setStartTime(Date.now());
+    }, []);
+
+    //==============
+    // 키 다운 핸들러 (분리)
+    //==============
+    const handleKeyDown = useCallback(
+        (e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (isComplete) return;
+
+            // 백스페이스와 엔터는 카운트 제외
+            if (e.key !== 'Enter' && e.key !== 'Backspace') {
+                setKeyDownCount((prev) => prev + 1);
+            }
+
+            // 엔터키 처리
+            if (e.key === 'Enter') {
+                // 문장 길이가 일치하지 않으면 무시
+                if (typing.length !== SENTENCE[sentenceIndex].length) return;
+
+                handleNext();
+            }
+        },
+        [isComplete, typing.length, sentenceIndex]
+    );
 
     //==============
     // 문장 입력 완료
     //==============
-    const handleEnter = () => {
+    const handleNext = useCallback(() => {
         if (isComplete) return;
 
-        setLog((prev) => {
-            return [...prev, { sentence: SENTENCE[sentenceIndex], typing }];
-        });
+        // 로그 추가
+        setLog((prev) => [
+            ...prev,
+            {
+                sentence: SENTENCE[sentenceIndex],
+                typing,
+            },
+        ]);
 
+        // 마지막 문장이면 게임 종료
         if (sentenceIndex === SENTENCE.length - 1) {
             setIsComplete(true);
+            setEndTime(Date.now());
             return;
         }
 
-        setSentenceIndex(sentenceIndex + 1);
+        // 다음 문장으로
+        setSentenceIndex((prev) => prev + 1);
         setTyping('');
-    };
+    }, [isComplete, sentenceIndex, typing]);
 
     //==============
     // 게임 끝
     //==============
     useEffect(() => {
-        if (isComplete) {
-            // 두 플레이어가 모두 완료 되면 결과 페이지로 이동
+        if (isComplete && startTime && endTime) {
+            const { elapsedTime, totalTime } = calculateResult(log, startTime, endTime);
+
+            const { minutes: elapsedMinutes, seconds: elapsedSeconds } = getTime(elapsedTime);
+            const { minutes: penaltyMinutes, seconds: penaltySeconds } = getTime(totalTime);
+
+            console.log('경과 시간:', `${elapsedMinutes}분 ${elapsedSeconds}초`);
+            console.log('최종 시간:', `${penaltyMinutes}분 ${penaltySeconds}초`);
+
             navigate('/result');
         }
-    }, [isComplete]);
+    }, [isComplete, startTime, endTime, log, navigate]);
 
     //==============
     // 게임 시작 시 input 포커싱
@@ -61,23 +107,27 @@ const Match: React.FC = () => {
     }, [startTime]);
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center">
-            <Countdown onStart={() => setStartTime(Date.now())} />
-            <ElapsedTimer startTime={startTime} />
+        <div className="min-h-screen flex flex-col items-center justify-center relative">
+            {/**통계 */}
+            <div className="absolute top-4" id="stats">
+                <ElapsedTimer startTime={startTime} />
+                <TypingSpeed startTime={startTime ?? 0} keyDownCount={keyDownCount} />
+                <TypingAccuracy log={log} />
+            </div>
+
+            <Countdown onStart={onStart} />
             <TypingLog log={log} />
-            <Cpm typing={typing} />
-            <ComparisonText sentence={SENTENCE[sentenceIndex]} typing={typing} />
+            <ComparisonText sentence={SENTENCE[sentenceIndex]} text={typing} />
+
             <Input
                 className="mt-5"
                 value={typing}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                    setTyping(e.target.value);
-                }}
+                onChange={(e) => setTyping(e.target.value)}
                 placeholder=""
-                onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => e.key === 'Enter' && handleEnter()}
+                onKeyDown={handleKeyDown}
                 disabled={!startTime}
                 ref={inputRef}
-            ></Input>
+            />
         </div>
     );
 };

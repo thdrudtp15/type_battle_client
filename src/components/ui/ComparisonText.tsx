@@ -1,9 +1,9 @@
 type ComparisonProps = {
     sentence: string;
-    typing: string;
+    text: string;
 };
 
-const ComparisonText = ({ sentence, typing }: ComparisonProps) => {
+const ComparisonText = ({ sentence, text }: ComparisonProps) => {
     return (
         <div>
             <div>
@@ -12,9 +12,9 @@ const ComparisonText = ({ sentence, typing }: ComparisonProps) => {
                         <span
                             key={index}
                             className={`${
-                                index >= typing.length
+                                index >= text.length
                                     ? 'text-gray-400'
-                                    : typing[index] === char
+                                    : text[index] === char
                                     ? 'text-blue-500'
                                     : 'text-red-500'
                             }`}

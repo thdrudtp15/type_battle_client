@@ -1,29 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { getTime } from '../../lib/util/getTime';
 
 const ElapsedTimer = ({ startTime }: { startTime: number | null }) => {
     const [elapsedTime, setElapsedTime] = useState<number>(0);
 
     useEffect(() => {
+        if (startTime === null) return;
+
         const interval = setInterval(() => {
-            if (startTime === null) return;
             setElapsedTime(Date.now() - startTime);
         }, 1000);
+
         return () => clearInterval(interval);
     }, [startTime]);
 
     if (startTime === null) return null;
 
+    const { minutes, seconds } = getTime(elapsedTime);
+
     return (
         <div>
             <span>
-                {Math.floor(elapsedTime / 60000)
-                    .toString()
-                    .padStart(2, '0')}
-                분{' '}
-                {Math.floor((elapsedTime % 60000) / 1000)
-                    .toString()
-                    .padStart(2, '0')}
-                초 경과
+                {minutes}분 {seconds}초 경과
             </span>
         </div>
     );
