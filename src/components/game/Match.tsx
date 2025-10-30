@@ -1,17 +1,19 @@
-import { useRef, useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import type { TypingLogType } from '../types/typingLog';
-import { getTime } from '../lib/util/getTime';
-import { calculateResult } from '../lib/util/calculateResult';
-import ElapsedTimer from '../components/game/ElapsedTimer';
-import TypingSpeed from '../components/game/TypingSpeed';
-import TypingAccuracy from '../components/game/TypingAccuracy';
-import Countdown from '../components/game/Countdown';
-import TypingLog from '../components/game/TypingLog';
-import ComparisonText from '../components/ui/ComparisonText';
-import Input from '../components/ui/Input';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import TypingLog from '../ui/TypingLog';
+import Input from '../ui/Input';
+import ComparisonText from '../ui/ComparisonText';
+import TypingSpeed from '../ui/TypingSpeed';
+import Countdown from '../ui/Countdown';
+import ElapsedTimer from '../ui/ElapsedTimer';
+import TypingAccuracy from '../ui/TypingAccuracy';
 
-import { SENTENCE } from '../constants/test';
+import { useNavigate } from 'react-router-dom';
+import { getTime } from '../../lib/util/getTime';
+import { calculateResult } from '../../lib/util/calculateResult';
+
+import { SENTENCE } from '../../constants/test';
+
+import type { TypingLogType } from '../../types/typingLog';
 
 const Match: React.FC = () => {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -29,29 +31,6 @@ const Match: React.FC = () => {
     const onStart = useCallback(() => {
         setStartTime(Date.now());
     }, []);
-
-    //==============
-    // 키 다운 핸들러 (분리)
-    //==============
-    const handleKeyDown = useCallback(
-        (e: React.KeyboardEvent<HTMLInputElement>) => {
-            if (isComplete) return;
-
-            // 백스페이스와 엔터는 카운트 제외
-            if (e.key !== 'Enter' && e.key !== 'Backspace') {
-                setKeyDownCount((prev) => prev + 1);
-            }
-
-            // 엔터키 처리
-            if (e.key === 'Enter') {
-                // 문장 길이가 일치하지 않으면 무시
-                if (typing.length !== SENTENCE[sentenceIndex].length) return;
-
-                handleNext();
-            }
-        },
-        [isComplete, typing.length, sentenceIndex]
-    );
 
     //==============
     // 문장 입력 완료
@@ -79,6 +58,29 @@ const Match: React.FC = () => {
         setSentenceIndex((prev) => prev + 1);
         setTyping('');
     }, [isComplete, sentenceIndex, typing]);
+
+    //==============
+    // 키 다운 핸들러 (분리)
+    //==============
+    const handleKeyDown = useCallback(
+        (e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (isComplete) return;
+
+            // 백스페이스와 엔터는 카운트 제외
+            if (e.key !== 'Enter' && e.key !== 'Backspace') {
+                setKeyDownCount((prev) => prev + 1);
+            }
+
+            // 엔터키 처리
+            if (e.key === 'Enter') {
+                // 문장 길이가 일치하지 않으면 무시
+                if (typing.length !== SENTENCE[sentenceIndex].length) return;
+
+                handleNext();
+            }
+        },
+        [isComplete, typing.length, sentenceIndex, handleNext]
+    );
 
     //==============
     // 게임 끝

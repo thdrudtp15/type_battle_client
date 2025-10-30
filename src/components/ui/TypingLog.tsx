@@ -1,6 +1,6 @@
 import React from 'react';
 
-import ComparisonText from '../ui/ComparisonText';
+import ComparisonText from './ComparisonText';
 
 import type { TypingLogType } from '../../types/typingLog';
 

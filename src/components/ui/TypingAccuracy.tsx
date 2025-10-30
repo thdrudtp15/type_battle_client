@@ -2,7 +2,7 @@ import React from 'react';
 
 import type { TypingLogType } from '../../types/typingLog';
 import { getAccuracyLog } from '../../lib/util/getAccuracy';
-import Progress from '../ui/Progress';
+import Progress from './Progress';
 
 type TypingAccuracyProps = {
     log: TypingLogType[];

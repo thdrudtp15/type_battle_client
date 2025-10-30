@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import Progress from '../ui/Progress';
+import Progress from './Progress';
 
 type TypingSpeedProps = {
     startTime: number;

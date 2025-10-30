@@ -1,6 +1,7 @@
 import Button from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 
+// 웹 페이지의 설명 등
 const Home = () => {
     const navigate = useNavigate();
 
