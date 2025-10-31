@@ -11,6 +11,8 @@ const Waiting = ({ socket }: WaitingProps) => {
     return (
         <div>
             <button onClick={cancelMatch}>매칭 취소</button>
+
+            {/**경과 시간 표시 하는 것도 괜찮을 듯 */}
         </div>
     );
 };

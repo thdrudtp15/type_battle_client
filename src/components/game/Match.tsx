@@ -14,8 +14,16 @@ import { calculateResult } from '../../lib/util/calculateResult';
 import { SENTENCE } from '../../constants/test';
 
 import type { TypingLogType } from '../../types/typingLog';
+import type { Socket } from 'socket.io-client';
 
-const Match: React.FC = () => {
+type MatchProps = {
+    socket: Socket;
+    roomId: string | null;
+    alarm: string | null;
+    gameCountdown: number;
+};
+
+const Match: React.FC<MatchProps> = ({ socket }: MatchProps) => {
     const inputRef = useRef<HTMLInputElement>(null);
 
     const [typing, setTyping] = useState<string>('');
@@ -92,10 +100,13 @@ const Match: React.FC = () => {
             const { minutes: elapsedMinutes, seconds: elapsedSeconds } = getTime(elapsedTime);
             const { minutes: penaltyMinutes, seconds: penaltySeconds } = getTime(totalTime);
 
+            socket.emit('match_end', {
+                elapsedTime, // 경과 시간
+                totalTime, // 최종 시간
+            });
+
             console.log('경과 시간:', `${elapsedMinutes}분 ${elapsedSeconds}초`);
             console.log('최종 시간:', `${penaltyMinutes}분 ${penaltySeconds}초`);
-
-            navigate('/result');
         }
     }, [isComplete, startTime, endTime, log, navigate]);
 
