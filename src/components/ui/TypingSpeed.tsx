@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import Progress from './Progress';
 
 type TypingSpeedProps = {
-    startTime: number;
+    startTime: number | null;
     keyDownCount: number;
 };
 

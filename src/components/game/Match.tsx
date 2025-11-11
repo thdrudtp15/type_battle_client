@@ -1,148 +1,210 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
+
 import TypingLog from '../ui/TypingLog';
-import Input from '../ui/Input';
-import ComparisonText from '../ui/ComparisonText';
-import TypingSpeed from '../ui/TypingSpeed';
-import Countdown from '../ui/Countdown';
-import ElapsedTimer from '../ui/ElapsedTimer';
 import TypingAccuracy from '../ui/TypingAccuracy';
+import TypingSpeed from '../ui/TypingSpeed';
+import Modal from '../ui/Modal';
 
-import { useNavigate } from 'react-router-dom';
-import { getTime } from '../../lib/util/getTime';
-import { calculateResult } from '../../lib/util/calculateResult';
-
-import { SENTENCE } from '../../constants/test';
+import { THROTTLE_TIME } from '../../constants/constants';
 
 import type { TypingLogType } from '../../types/typingLog';
 import type { Socket } from 'socket.io-client';
+import type { SocketStatus } from '../../types/socketStatus';
 
 type MatchProps = {
     socket: Socket;
     roomId: string | null;
-    alarm: string | null;
     gameCountdown: number;
+    gameStartTime: number | null;
+    alarm: string | null;
+    setStatus: (status: SocketStatus) => void;
+    elapsedTime: number;
+    opponentInput: string;
+    opponentLog: TypingLogType[];
+    isTypingEnd: boolean;
+    sentence: string[];
 };
 
-const Match: React.FC<MatchProps> = ({ socket }: MatchProps) => {
+const Match = ({
+    socket,
+    roomId,
+    gameCountdown,
+    gameStartTime,
+    alarm,
+    setStatus,
+    elapsedTime,
+    opponentInput,
+    opponentLog,
+    isTypingEnd,
+    sentence,
+}: MatchProps) => {
     const inputRef = useRef<HTMLInputElement>(null);
+    const lastEmitTimeRef = useRef<number>(0);
 
-    const [typing, setTyping] = useState<string>('');
-    const [sentenceIndex, setSentenceIndex] = useState<number>(0);
+    const [input, setInput] = useState<string>('');
+    const [currentSentenceIndex, setCurrentSentenceIndex] = useState<number>(0);
     const [log, setLog] = useState<TypingLogType[]>([]);
-    const [isComplete, setIsComplete] = useState<boolean>(false);
-    const [endTime, setEndTime] = useState<number | null>(null);
-    const [startTime, setStartTime] = useState<number | null>(null);
     const [keyDownCount, setKeyDownCount] = useState<number>(0);
 
-    const navigate = useNavigate();
-
-    const onStart = useCallback(() => {
-        setStartTime(Date.now());
-    }, []);
+    const loseTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     //==============
-    // 문장 입력 완료
-    //==============
-    const handleNext = useCallback(() => {
-        if (isComplete) return;
-
-        // 로그 추가
-        setLog((prev) => [
-            ...prev,
-            {
-                sentence: SENTENCE[sentenceIndex],
-                typing,
-            },
-        ]);
-
-        // 마지막 문장이면 게임 종료
-        if (sentenceIndex === SENTENCE.length - 1) {
-            setIsComplete(true);
-            setEndTime(Date.now());
-            return;
-        }
-
-        // 다음 문장으로
-        setSentenceIndex((prev) => prev + 1);
-        setTyping('');
-    }, [isComplete, sentenceIndex, typing]);
-
-    //==============
-    // 키 다운 핸들러 (분리)
-    //==============
-    const handleKeyDown = useCallback(
-        (e: React.KeyboardEvent<HTMLInputElement>) => {
-            if (isComplete) return;
-
-            // 백스페이스와 엔터는 카운트 제외
-            if (e.key !== 'Enter' && e.key !== 'Backspace') {
-                setKeyDownCount((prev) => prev + 1);
-            }
-
-            // 엔터키 처리
-            if (e.key === 'Enter') {
-                // 문장 길이가 일치하지 않으면 무시
-                if (typing.length !== SENTENCE[sentenceIndex].length) return;
-
-                handleNext();
-            }
-        },
-        [isComplete, typing.length, sentenceIndex, handleNext]
-    );
-
-    //==============
-    // 게임 끝
+    // 입력 카운트 핸들러
     //==============
     useEffect(() => {
-        if (isComplete && startTime && endTime) {
-            const { elapsedTime, totalTime } = calculateResult(log, startTime, endTime);
+        if (!gameStartTime) return;
 
-            const { minutes: elapsedMinutes, seconds: elapsedSeconds } = getTime(elapsedTime);
-            const { minutes: penaltyMinutes, seconds: penaltySeconds } = getTime(totalTime);
+        loseTimeout.current = setTimeout(() => {
+            handleLose();
+        }, 20000);
 
-            socket.emit('match_end', {
-                elapsedTime, // 경과 시간
-                totalTime, // 최종 시간
-            });
+        setKeyDownCount(keyDownCount + 1);
 
-            console.log('경과 시간:', `${elapsedMinutes}분 ${elapsedSeconds}초`);
-            console.log('최종 시간:', `${penaltyMinutes}분 ${penaltySeconds}초`);
+        const now = Date.now();
+        const timeSinceLastEmit = now - lastEmitTimeRef.current;
+
+        if (timeSinceLastEmit >= THROTTLE_TIME) {
+            socket.emit('typing_input', roomId, input);
+            lastEmitTimeRef.current = now;
         }
-    }, [isComplete, startTime, endTime, log, navigate]);
+
+        return () => {
+            clearInterval(loseTimeout.current);
+        };
+    }, [input, gameStartTime]);
+
+    //==============
+    // 로그 전송 핸들러
+    //==============
+    useEffect(() => {
+        if (log.length === 0) return;
+        // 로그 전송
+
+        socket.emit('typing_input', roomId, '');
+        socket.emit('typing_log', roomId, log);
+        socket.emit('typing_sentence', roomId, currentSentenceIndex);
+
+        if (currentSentenceIndex === sentence.length) {
+            handleMatchEnd();
+        }
+    }, [log, setLog]);
 
     //==============
     // 게임 시작 시 input 포커싱
     //==============
     useEffect(() => {
-        if (startTime) {
+        if (gameStartTime) {
             inputRef.current?.focus();
         }
-    }, [startTime]);
+    }, [gameStartTime]);
+
+    //==============
+    // 입력 변경 핸들러
+    //==============
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setInput(e.target.value);
+    };
+
+    //==============
+    // 입력 완료 핸들러
+    //==============
+    const handleComplete = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter' && input.length === sentence[currentSentenceIndex].length) {
+            setCurrentSentenceIndex(currentSentenceIndex + 1);
+            setLog((prev) => [
+                ...prev,
+                {
+                    sentence: sentence[currentSentenceIndex],
+                    typing: input,
+                },
+            ]);
+            if (inputRef.current) {
+                inputRef.current.value = '';
+            }
+        }
+    };
+
+    //==============
+    // 게임 종료 핸들러
+    //==============
+    const handleMatchEnd = () => {
+        // console.log(gameStartTime);
+        // console.log(gameCountdown);
+
+        if (!roomId && !gameStartTime) return;
+        socket.emit('typing_end', roomId);
+    };
+
+    //==============
+    // 입력 없을 경우 패배 처리
+    //==============
+    const handleLose = () => {
+        socket.emit('match_cancelled_by_timeout', roomId);
+    };
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center relative">
-            {/**통계 */}
-            <div className="absolute top-4" id="stats">
-                <ElapsedTimer startTime={startTime} />
-                <TypingSpeed startTime={startTime ?? 0} keyDownCount={keyDownCount} />
-                <TypingAccuracy log={log} />
+        <div className="flex items-center justify-center min-h-screen">
+            <div id="player" className="w-full h-full flex flex-col items-center justify-center">
+                {/**통계 및 정보 표시 */}
+                <div id="information" className="flex flex-col items-center justify-center">
+                    {/**컴포넌트 분리 */}
+                    {elapsedTime > 0 && <p>경과 시간 : {elapsedTime}초</p>}
+
+                    {gameCountdown > 0 && <p>시작까지 남은 시간 : {gameCountdown}초</p>}
+                    {alarm === 'opponent_disconnected' && (
+                        <Modal onClose={() => setStatus('connected')}>상대방이 게임을 취소했습니다.</Modal>
+                    )}
+                    {alarm === 'opponent_timeout' && (
+                        <Modal onClose={() => setStatus('connected')}>
+                            상대방이 타이핑을 타이핑을 입력하지 않아 게임이 취소되었습니다.
+                        </Modal>
+                    )}
+                    {alarm === 'player_timeout' && (
+                        <Modal onClose={() => setStatus('connected')}>
+                            20초간 타이핑을 입력하지 않아 게임이 취소되었습니다.
+                        </Modal>
+                    )}
+                    {!gameStartTime && <p>게임을 준비해주세요</p>}
+                    {gameStartTime && gameStartTime > 0 && <p>게임이 시작 되었습니다.</p>}
+
+                    <TypingLog log={log} />
+                    <TypingAccuracy log={log} />
+                    <TypingSpeed startTime={gameStartTime} keyDownCount={keyDownCount} />
+                </div>
+                <p>{sentence[currentSentenceIndex]}</p>
+                {!isTypingEnd && (
+                    <input
+                        className="border rounded"
+                        type="text"
+                        ref={inputRef}
+                        disabled={!gameStartTime}
+                        onChange={handleInputChange}
+                        onKeyDown={handleComplete}
+                    />
+                )}
+                {!isTypingEnd && <button onClick={handleMatchEnd}>타이핑 마치기</button>}
+                {isTypingEnd && <p>타이핑이 완료되었습니다.</p>}
             </div>
-
-            <Countdown onStart={onStart} />
-            <TypingLog log={log} />
-            <ComparisonText sentence={SENTENCE[sentenceIndex]} text={typing} />
-
-            <Input
-                className="mt-5"
-                value={typing}
-                onChange={(e) => setTyping(e.target.value)}
-                placeholder=""
-                onKeyDown={handleKeyDown}
-                disabled={!startTime}
-                ref={inputRef}
-            />
+            <div id="opponent" className="w-full h-full flex items-center justify-center">
+                <TypingLog log={opponentLog} />
+                <p>상대방 입력 : {opponentInput}</p>
+            </div>
         </div>
     );
 };
 
 export default Match;
+
+// 소켓 서버에서는 시작 시간 보내줘야 함. OK
+
+// 쓰로틀링 이용해서 input 보내기 (진행 사항)
+// 로그 보내기 OK
+
+// 타이핑 모두 끝내면 완료 요청 보내는 로직 추가. OK
+// 타이핑 스피드 수정(게임을 끝낸 상태에서도 계속 진행 되는 문제 발생.)
+// 게임 완료 시 input 비활성화 및 게임 시작 이전 input 비활성화 OK
+
+// 끝끝
+// 로그 기반으로 소켓 서버에서 틀린 거 만큼 시간 추가해서 결과 보여주기 (약간 이상하지만 OK)
+
+// 몇 초 동안 입력 없을 경우 세션 종료 OK

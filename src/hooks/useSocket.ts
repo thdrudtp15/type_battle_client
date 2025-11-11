@@ -11,8 +11,30 @@ const useSocket = () => {
     const [alarm, setAlarm] = useState<string | null>(null);
     const [readyCountdown, setReadyCountdown] = useState<number>(0);
     const [gameCountdown, setGameCountdown] = useState<number>(0);
-    // const [elapsedTime, setElapsedTime] = useState<number>(0);
-    const [isGameStarted, setIsGameStarted] = useState<boolean>(false);
+    const [elapsedTime, setElapsedTime] = useState<number>(0);
+    const [gameStartTime, setGameStartTime] = useState<number | null>(null);
+    const [opponentInput, setOpponentInput] = useState<string>('');
+    const [opponentLog, setOpponentLog] = useState<{ sentence: string; typing: string }[]>([]);
+    const [result, setResult] = useState<{
+        myResult: { failedCount: number; elapsedTime: number; penaltyTime: number; totalTime: number };
+        opponentResult: { failedCount: number; elapsedTime: number; penaltyTime: number; totalTime: number };
+    } | null>(null);
+    const [isTypingEnd, setIsTypingEnd] = useState(false);
+    const [sentence, setSentence] = useState<string[]>([]);
+
+    const resetGame = () => {
+        setRoomId(null);
+        setOpponentReady(false);
+        setReadyCountdown(0);
+        setGameCountdown(0);
+        setElapsedTime(0);
+        setGameStartTime(null);
+        setOpponentInput('');
+        setOpponentLog([]);
+        setResult(null);
+        setIsTypingEnd(false);
+        setSentence([]);
+    };
 
     useEffect(() => {
         const socket = io('http://localhost:3001', {
@@ -34,6 +56,7 @@ const useSocket = () => {
 
         socket.on('disconnect', () => {
             console.log('연결 해제');
+            resetGame();
             setStatus('disconnected');
         });
 
@@ -63,31 +86,27 @@ const useSocket = () => {
         //==============
         // 매칭 이벤트 핸들러
         //==============
-        socket.on('matching', (data) => {
-            const { status } = data;
-            setStatus(status);
+        socket.on('matching', () => {
+            setStatus('waiting');
         });
 
-        socket.on('matching_cancel', (data) => {
-            const { status } = data;
-            setStatus(status);
+        socket.on('matching_cancel', () => {
+            setStatus('connected');
         });
 
         socket.on('match_cancelled', (data) => {
             const { reason } = data;
             setAlarm(reason);
-            setRoomId(null);
-            setOpponentReady(false);
+            resetGame();
         });
 
         socket.on('matched', (data) => {
-            const { status, roomId } = data;
-            setStatus(status);
+            const { roomId } = data;
+            setStatus('matched');
             setRoomId(roomId);
         });
-        socket.on('match_end', (data) => {
-            const { status } = data;
-            setStatus(status);
+        socket.on('match_end', () => {
+            setStatus('result');
         });
 
         socket.on('ready_countdown', (data) => {
@@ -113,13 +132,19 @@ const useSocket = () => {
             setStatus('playing');
         });
 
-        socket.on('game_start', () => {
-            setStatus('playing');
-            setIsGameStarted(true);
+        socket.on('game_start', (data) => {
+            console.log(status);
+            const { startTime, sentence } = data;
+            setSentence(sentence);
+            setGameStartTime(startTime);
         });
 
-        socket.on('game_end', () => {
+        socket.on('game_end', (data) => {
+            console.log(data);
+            const { myResult, opponentResult } = data;
+            setResult({ myResult, opponentResult });
             setStatus('result');
+            setSentence([]);
         });
 
         socket.on('game_countdown', (data) => {
@@ -127,12 +152,50 @@ const useSocket = () => {
             setGameCountdown(remainingCount);
         });
 
+        socket.on('elapsed_time', (data) => {
+            const { elapsedTime } = data;
+            setElapsedTime(elapsedTime);
+        });
+
+        //==============
+        // 게임 프로세스
+        //==============
+        socket.on('opponent_typing_input', (data) => {
+            const { input } = data;
+            setOpponentInput(input);
+        });
+
+        socket.on('opponent_typing_log', (data) => {
+            const { log } = data;
+            setOpponentLog(log);
+        });
+        socket.on('typing_end', () => {
+            setIsTypingEnd(true);
+        });
+
         return () => {
             socket.close();
         };
     }, []);
 
-    return { socket, status, roomId, opponentReady, alarm, setStatus, readyCountdown, gameCountdown, isGameStarted };
+    return {
+        socket,
+        status,
+        roomId,
+        opponentReady,
+        alarm,
+        setAlarm,
+        setStatus,
+        readyCountdown,
+        gameCountdown,
+        gameStartTime,
+        elapsedTime,
+        opponentInput,
+        opponentLog,
+        result,
+        isTypingEnd,
+        sentence,
+    };
 };
 
 export default useSocket;
