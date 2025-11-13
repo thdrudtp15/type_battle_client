@@ -1,18 +1,14 @@
 import { motion, AnimatePresence } from 'framer-motion';
 
-import Modal from './ui/Modal';
-
 import type { Socket } from 'socket.io-client';
 
 type IndexProps = {
     socket: Socket | null;
     status: string;
-    matchCountdown: number;
-    alarm: string | null;
-    setAlarm: (alarm: string | null) => void;
+    children: React.ReactNode;
 };
 
-const Index = ({ socket, status, matchCountdown, alarm, setAlarm }: IndexProps) => {
+const Index = ({ socket, status, children }: IndexProps) => {
     //==============
     // 매칭 요청
     //==============
@@ -26,7 +22,7 @@ const Index = ({ socket, status, matchCountdown, alarm, setAlarm }: IndexProps) 
     //==============
     const cancelMatch = () => {
         if (!status) return;
-        socket?.emit('matching_cancel');
+        socket?.emit('cancel_find_match');
     };
 
     const isServerEnabled = status !== 'disconnected' || !status;
@@ -150,13 +146,7 @@ const Index = ({ socket, status, matchCountdown, alarm, setAlarm }: IndexProps) 
                     </div>
                 </motion.div>
                 {/** 모달  */}
-                <Modal isOpen={status === 'found_match'}>
-                    매치를 찾았어요!
-                    {matchCountdown}초 뒤에 게임이 시작됩니다!
-                </Modal>
-                <Modal isOpen={alarm === 'opponent_disconnected'} onClose={() => setAlarm(null)}>
-                    상대방이 게임을 취소했어요.
-                </Modal>
+                {children}
             </>
         </AnimatePresence>
     );

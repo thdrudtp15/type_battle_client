@@ -4,13 +4,17 @@ import type { RefObject } from 'react';
 
 const Input = React.memo(
     ({
-        setInput,
+        // setInput,
         inputRef,
         handleComplete,
+        handleKeyDown,
+        isCompleted,
     }: {
-        setInput: (input: string) => void;
+        // setInput: (input: string) => void;
         inputRef: RefObject<HTMLInputElement | null>;
         handleComplete: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+        handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+        isCompleted: boolean;
     }) => {
         return (
             <motion.input
@@ -21,9 +25,12 @@ const Input = React.memo(
                                rounded-xl p-4 text-[#d1d0c5] text-2xl font-mono 
                                focus:border-[#e2b714] focus:outline-none transition-colors"
                 type="text"
-                placeholder="여기에 입력하세요..."
+                placeholder={`${isCompleted ? '상대방 입력을 기다려 주세요' : '여기에 입력하세요...'}`}
                 autoFocus
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
+                disabled={isCompleted}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                    handleKeyDown(e as unknown as React.KeyboardEvent<HTMLInputElement>);
+                }}
                 onKeyDown={handleComplete}
                 ref={inputRef}
             />

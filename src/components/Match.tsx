@@ -1,17 +1,15 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 
-import Modal from './ui/Modal';
 import MatchRemainingProgress from './game/MatchRemainingProgress';
 import Input from './game/Input';
 import Sentence from './game/Sentence';
+import Players from './game/Players';
 
 import { THROTTLE_TIME } from '../constants/constants';
 
 import type { Socket } from 'socket.io-client';
 import type { TypingLogType } from '../types/typingLog';
-
-import type { SocketStatus } from '../types/socketStatus';
-import Players from './game/Players';
+import type { Players as PlayersType } from '../types/players';
 
 type matchRemainingTimeType = {
     matchPlayTime: number;
@@ -20,15 +18,15 @@ type matchRemainingTimeType = {
 
 type MatchProps = {
     matchRemainingTime: matchRemainingTimeType;
-    sentence: string[];
     socket: Socket;
     roomId: string | null;
-    status: SocketStatus;
-    setStatus: (status: SocketStatus) => void;
-    gameStartTime: number | null;
+    matchLog: { player: PlayersType; opponent: PlayersType } | null;
+    children: React.ReactNode;
 };
 
-const Match = ({ matchRemainingTime, sentence, socket, roomId, status, setStatus }: MatchProps) => {
+const Match = ({ matchRemainingTime, socket, roomId, matchLog, children }: MatchProps) => {
+    const { player } = matchLog || {};
+    const { sentence, isCompleted } = player || { sentence: '', isCompleted: false };
     const { matchPlayTime, remainingTime } = matchRemainingTime;
 
     const inputRef = useRef<HTMLInputElement>(null);
@@ -36,8 +34,8 @@ const Match = ({ matchRemainingTime, sentence, socket, roomId, status, setStatus
 
     const [input, setInput] = useState<string>('');
     const [log, setLog] = useState<TypingLogType[]>([]);
-    const [currentSentenceIndex, setCurrentSentenceIndex] = useState<number>(0);
-    // const [keyDownCount, setKeyDownCount] = useState<number>(0);
+
+    const [keyDownCount, setKeyDownCount] = useState<number>(0);
 
     //==============
     // 입력 카운트 핸들러
@@ -46,8 +44,7 @@ const Match = ({ matchRemainingTime, sentence, socket, roomId, status, setStatus
         const now = Date.now();
         const timeSinceLastEmit = now - lastEmitTimeRef.current;
         if (timeSinceLastEmit >= THROTTLE_TIME) {
-            socket.emit('accuracy', roomId);
-            socket.emit('cpm', roomId);
+            socket.emit('match_cpm', roomId);
             lastEmitTimeRef.current = now;
         }
     }, [input]);
@@ -57,40 +54,63 @@ const Match = ({ matchRemainingTime, sentence, socket, roomId, status, setStatus
     //==============
     useEffect(() => {
         if (log.length === 0) return;
-        // 로그 전송
-        socket.emit('log', roomId, log);
+        // 로그 전송 (정확도는 서버에서 계산.)
+
+        socket.emit('match_log', roomId, log);
     }, [log, setLog]);
 
     //==============
     // 입력 완료 핸들러
     //==============
-    const handleComplete = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter' && input.length === sentence[currentSentenceIndex].length) {
-            setCurrentSentenceIndex(currentSentenceIndex + 1);
-            setLog((prev) => [
-                ...prev,
-                {
-                    sentence: sentence[currentSentenceIndex],
-                    typing: input,
-                },
-            ]);
-            if (inputRef.current) {
-                inputRef.current.value = '';
+    const handleComplete = useCallback(
+        (e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (e.key === 'Enter' && input.length === sentence.length) {
+                console.log('보내기!');
+                setLog((prev) => [
+                    ...prev,
+                    {
+                        sentence,
+                        typing: input,
+                    },
+                ]);
+                if (inputRef.current) {
+                    inputRef.current.value = '';
+                    setInput('');
+                }
             }
-        }
-    };
+        },
+        [setLog, inputRef, sentence, input]
+    );
+
+    //==============
+    // 키 다운운 핸들러
+    //==============
+    const handleKeyDown = useCallback(
+        (e: React.KeyboardEvent<HTMLInputElement>) => {
+            const prevValue = input;
+            const currentValue = e.currentTarget.value;
+            if (prevValue.length < currentValue.length) {
+                setKeyDownCount(keyDownCount + 1);
+            }
+            setInput(currentValue);
+        },
+        [keyDownCount, input]
+    );
 
     return (
         <div className="flex items-center justify-center">
             <div className="w-full">
                 <MatchRemainingProgress matchPlayTime={matchPlayTime} remainingTime={remainingTime} />
-                <Players />
-                <Sentence sentence={sentence} currentSentenceIndex={currentSentenceIndex} />
-                <Input setInput={setInput} inputRef={inputRef} handleComplete={handleComplete} />
+                <Players matchLog={matchLog} />
+                <Sentence sentence={sentence} input={input} isCompleted={isCompleted} />
+                <Input
+                    handleKeyDown={handleKeyDown}
+                    inputRef={inputRef}
+                    handleComplete={handleComplete}
+                    isCompleted={isCompleted}
+                />
             </div>
-            <Modal isOpen={status === 'match_result'} onClose={() => setStatus('connected')}>
-                결과!
-            </Modal>
+            <>{children}</>
         </div>
     );
 };

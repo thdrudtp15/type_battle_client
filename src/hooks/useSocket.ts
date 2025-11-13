@@ -2,45 +2,35 @@ import { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 
 import type { SocketStatus } from '../types/socketStatus';
+import type { Players } from '../types/players';
 
 const useSocket = () => {
     const [socket, setSocket] = useState<Socket | null>(null);
     const [status, setStatus] = useState<SocketStatus>('disconnected');
     const [roomId, setRoomId] = useState<string | null>(null);
-    const [opponentReady, setOpponentReady] = useState(false);
     const [alarm, setAlarm] = useState<string | null>(null);
-    const [readyCountdown, setReadyCountdown] = useState<number>(0);
     const [gameCountdown, setGameCountdown] = useState<number>(0);
-    const [elapsedTime, setElapsedTime] = useState<number>(0);
     const [gameStartTime, setGameStartTime] = useState<number | null>(null);
-    const [opponentInput, setOpponentInput] = useState<string>('');
-    const [opponentLog, setOpponentLog] = useState<{ sentence: string; typing: string }[]>([]);
-    const [result, setResult] = useState<{
-        myResult: { failedCount: number; elapsedTime: number; penaltyTime: number; totalTime: number };
-        opponentResult: { failedCount: number; elapsedTime: number; penaltyTime: number; totalTime: number };
-    } | null>(null);
-    const [isTypingEnd, setIsTypingEnd] = useState(false);
-    const [sentence, setSentence] = useState<string[]>([]);
-
     const [matchCountdown, setMatchCountdown] = useState<number>(0);
     const [matchRemainingTime, setMatchRemainingTime] = useState<{ matchPlayTime: number; remainingTime: number }>({
         matchPlayTime: 0,
         remainingTime: 0,
     });
 
+    const [matchLog, setMatchLog] = useState<{ player: Players; opponent: Players } | null>(null);
+    const [matchResult, setMatchResult] = useState<{
+        player: Players;
+        opponent: Players;
+    } | null>(null);
+
     const resetGame = () => {
         setStatus('connected');
         setRoomId(null);
-        setOpponentReady(false);
-        setReadyCountdown(0);
         setGameCountdown(0);
-        setElapsedTime(0);
         setGameStartTime(null);
-        setOpponentInput('');
-        setOpponentLog([]);
-        setResult(null);
-        setIsTypingEnd(false);
-        setSentence([]);
+        setMatchCountdown(0);
+        setMatchLog(null);
+        setMatchRemainingTime({ matchPlayTime: 0, remainingTime: 0 });
     };
 
     useEffect(() => {
@@ -114,9 +104,16 @@ const useSocket = () => {
         });
 
         socket.on('match_start', (data) => {
-            const { sentence } = data;
-            setSentence(sentence);
+            const { player, opponent, gameStartTime } = data;
+            setMatchLog({ player, opponent });
+            setGameStartTime(gameStartTime);
             setStatus('match_start');
+        });
+
+        socket.on('match_log', (data) => {
+            const { player, opponent } = data;
+            console.log(data);
+            setMatchLog({ player, opponent });
         });
 
         socket.on('match_countdown', (data) => {
@@ -129,92 +126,10 @@ const useSocket = () => {
             setMatchRemainingTime({ matchPlayTime, remainingTime });
         });
 
-        socket.on('match_result', () => {
+        socket.on('match_result', (data) => {
+            const { player, opponent } = data;
+            setMatchResult({ player, opponent });
             setStatus('match_result');
-        });
-
-        //==============
-        // 매칭 이벤트 핸들러
-        //==============
-        socket.on('matching', () => {
-            setStatus('waiting');
-        });
-
-        socket.on('matching_cancel', () => {
-            setStatus('connected');
-        });
-
-        socket.on('matched', (data) => {
-            const { roomId } = data;
-            setStatus('matched');
-            setRoomId(roomId);
-        });
-        // socket.on('match_end', () => {
-        //     setStatus('result');
-        // });
-
-        socket.on('ready_countdown', (data) => {
-            const { remainingCount } = data;
-            setReadyCountdown(remainingCount);
-        });
-
-        //==============
-        // 상대방 준비상태 핸들러
-        //==============
-        socket.on('opponent_ready', () => {
-            setOpponentReady(true);
-        });
-
-        socket.on('opponent_cancel_ready', () => {
-            setOpponentReady(false);
-        });
-
-        //==============
-        // 게임 시작 이벤트 핸들러
-        //==============
-        socket.on('game_ready', () => {
-            setStatus('playing');
-        });
-
-        socket.on('game_start', (data) => {
-            console.log(status);
-            const { startTime, sentence } = data;
-            setSentence(sentence);
-            setGameStartTime(startTime);
-        });
-
-        socket.on('game_end', (data) => {
-            console.log(data);
-            const { myResult, opponentResult } = data;
-            setResult({ myResult, opponentResult });
-            setStatus('result');
-            setSentence([]);
-        });
-
-        socket.on('game_countdown', (data) => {
-            const { remainingCount } = data;
-            setGameCountdown(remainingCount);
-        });
-
-        socket.on('elapsed_time', (data) => {
-            const { elapsedTime } = data;
-            setElapsedTime(elapsedTime);
-        });
-
-        //==============
-        // 게임 프로세스
-        //==============
-        socket.on('opponent_typing_input', (data) => {
-            const { input } = data;
-            setOpponentInput(input);
-        });
-
-        socket.on('opponent_typing_log', (data) => {
-            const { log } = data;
-            setOpponentLog(log);
-        });
-        socket.on('typing_end', () => {
-            setIsTypingEnd(true);
         });
 
         return () => {
@@ -224,25 +139,17 @@ const useSocket = () => {
 
     return {
         socket,
-
-        opponentReady,
         alarm,
         setAlarm,
         setStatus,
-        readyCountdown,
         gameCountdown,
         gameStartTime,
-        elapsedTime,
-        opponentInput,
-        opponentLog,
-        result,
-        isTypingEnd,
-        sentence,
-        ///
         matchCountdown,
         matchRemainingTime,
         status,
         roomId,
+        matchLog,
+        matchResult,
     };
 };
 
