@@ -1,9 +1,9 @@
-export type SocketStatus =
-    | 'disconnected'
-    | 'connected'
-    | 'connecting'
-    | 'waiting'
-    | 'playing'
-    | 'matched'
-    | 'result'
-    | 'error';
+export type SocketStatus = string;
+// | 'disconnected'
+// | 'connected'
+// | 'connecting'
+// | 'waiting'
+// | 'playing'
+// | 'matched'
+// | 'result'
+// | 'error';

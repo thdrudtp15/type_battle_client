@@ -22,7 +22,14 @@ const useSocket = () => {
     const [isTypingEnd, setIsTypingEnd] = useState(false);
     const [sentence, setSentence] = useState<string[]>([]);
 
+    const [matchCountdown, setMatchCountdown] = useState<number>(0);
+    const [matchRemainingTime, setMatchRemainingTime] = useState<{ matchPlayTime: number; remainingTime: number }>({
+        matchPlayTime: 0,
+        remainingTime: 0,
+    });
+
     const resetGame = () => {
+        setStatus('connected');
         setRoomId(null);
         setOpponentReady(false);
         setReadyCountdown(0);
@@ -75,12 +82,55 @@ const useSocket = () => {
 
         socket.on('reconnect_error', () => {
             console.log('재연결 실패');
-            setStatus('error');
+            setStatus('disconnected');
         });
 
         socket.on('connect_error', () => {
             console.log('연결 실패');
-            setStatus('error');
+            setStatus('disconnected');
+        });
+
+        //==============
+        // 서버 상태 핸들러
+        //==============
+        socket.on('find_match', () => {
+            setStatus('finding_match');
+        });
+        socket.on('cancel_find_match', () => {
+            setStatus('connected');
+        });
+
+        // 매치 찾기 성공.
+        socket.on('found_match', (data) => {
+            const { roomId } = data;
+            setRoomId(roomId);
+            setStatus('found_match');
+        });
+
+        socket.on('match_cancelled', (data) => {
+            const { reason } = data;
+            setAlarm(reason);
+            resetGame();
+        });
+
+        socket.on('match_start', (data) => {
+            const { sentence } = data;
+            setSentence(sentence);
+            setStatus('match_start');
+        });
+
+        socket.on('match_countdown', (data) => {
+            const { countdown } = data;
+            setMatchCountdown(countdown);
+        });
+
+        socket.on('match_remaining_time', (data) => {
+            const { matchPlayTime, remainingTime } = data;
+            setMatchRemainingTime({ matchPlayTime, remainingTime });
+        });
+
+        socket.on('match_result', () => {
+            setStatus('match_result');
         });
 
         //==============
@@ -94,20 +144,14 @@ const useSocket = () => {
             setStatus('connected');
         });
 
-        socket.on('match_cancelled', (data) => {
-            const { reason } = data;
-            setAlarm(reason);
-            resetGame();
-        });
-
         socket.on('matched', (data) => {
             const { roomId } = data;
             setStatus('matched');
             setRoomId(roomId);
         });
-        socket.on('match_end', () => {
-            setStatus('result');
-        });
+        // socket.on('match_end', () => {
+        //     setStatus('result');
+        // });
 
         socket.on('ready_countdown', (data) => {
             const { remainingCount } = data;
@@ -180,8 +224,7 @@ const useSocket = () => {
 
     return {
         socket,
-        status,
-        roomId,
+
         opponentReady,
         alarm,
         setAlarm,
@@ -195,6 +238,11 @@ const useSocket = () => {
         result,
         isTypingEnd,
         sentence,
+        ///
+        matchCountdown,
+        matchRemainingTime,
+        status,
+        roomId,
     };
 };
 

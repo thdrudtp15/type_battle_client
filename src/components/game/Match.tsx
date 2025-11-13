@@ -143,53 +143,51 @@ const Match = ({
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen">
-            <div id="player" className="w-full h-full flex flex-col items-center justify-center">
-                {/**통계 및 정보 표시 */}
-                <div id="information" className="flex flex-col items-center justify-center">
-                    {/**컴포넌트 분리 */}
-                    {elapsedTime > 0 && <p>경과 시간 : {elapsedTime}초</p>}
+        <>
+            <div className="flex items-center justify-center min-h-screen">
+                <div id="player" className="w-full h-full flex flex-col items-center justify-center">
+                    {/**통계 및 정보 표시 */}
+                    <div id="information" className="flex flex-col items-center justify-center">
+                        {/**컴포넌트 분리 */}
+                        {elapsedTime > 0 && <p>경과 시간 : {elapsedTime}초</p>}
+                        {gameCountdown > 0 && <p>시작까지 남은 시간 : {gameCountdown}초</p>}
+                        {!gameStartTime && <p>게임을 준비해주세요</p>}
+                        {gameStartTime && gameStartTime > 0 && <p>게임이 시작 되었습니다.</p>}
 
-                    {gameCountdown > 0 && <p>시작까지 남은 시간 : {gameCountdown}초</p>}
-                    {alarm === 'opponent_disconnected' && (
-                        <Modal onClose={() => setStatus('connected')}>상대방이 게임을 취소했습니다.</Modal>
+                        <TypingLog log={log} />
+                        <TypingAccuracy log={log} />
+                        <TypingSpeed startTime={gameStartTime} keyDownCount={keyDownCount} />
+                    </div>
+                    <p>{sentence[currentSentenceIndex]}</p>
+                    {!isTypingEnd && (
+                        <input
+                            className="border rounded"
+                            type="text"
+                            ref={inputRef}
+                            disabled={!gameStartTime}
+                            onChange={handleInputChange}
+                            onKeyDown={handleComplete}
+                        />
                     )}
-                    {alarm === 'opponent_timeout' && (
-                        <Modal onClose={() => setStatus('connected')}>
-                            상대방이 타이핑을 타이핑을 입력하지 않아 게임이 취소되었습니다.
-                        </Modal>
-                    )}
-                    {alarm === 'player_timeout' && (
-                        <Modal onClose={() => setStatus('connected')}>
-                            20초간 타이핑을 입력하지 않아 게임이 취소되었습니다.
-                        </Modal>
-                    )}
-                    {!gameStartTime && <p>게임을 준비해주세요</p>}
-                    {gameStartTime && gameStartTime > 0 && <p>게임이 시작 되었습니다.</p>}
-
-                    <TypingLog log={log} />
-                    <TypingAccuracy log={log} />
-                    <TypingSpeed startTime={gameStartTime} keyDownCount={keyDownCount} />
+                    {!isTypingEnd && <button onClick={handleMatchEnd}>타이핑 마치기</button>}
+                    {isTypingEnd && <p>타이핑이 완료되었습니다.</p>}
                 </div>
-                <p>{sentence[currentSentenceIndex]}</p>
-                {!isTypingEnd && (
-                    <input
-                        className="border rounded"
-                        type="text"
-                        ref={inputRef}
-                        disabled={!gameStartTime}
-                        onChange={handleInputChange}
-                        onKeyDown={handleComplete}
-                    />
-                )}
-                {!isTypingEnd && <button onClick={handleMatchEnd}>타이핑 마치기</button>}
-                {isTypingEnd && <p>타이핑이 완료되었습니다.</p>}
+                <div id="opponent" className="w-full h-full flex items-center justify-center">
+                    <TypingLog log={opponentLog} />
+                    <p>상대방 입력 : {opponentInput}</p>
+                </div>
             </div>
-            <div id="opponent" className="w-full h-full flex items-center justify-center">
-                <TypingLog log={opponentLog} />
-                <p>상대방 입력 : {opponentInput}</p>
-            </div>
-        </div>
+            {/** 모달-------- */}
+            <Modal onClose={() => setStatus('connected')} isOpen={alarm === 'opponent_disconnected'}>
+                상대방이 게임을 취소했습니다.
+            </Modal>
+            <Modal onClose={() => setStatus('connected')} isOpen={alarm === 'opponent_timeout'}>
+                상대방이 타이핑을 타이핑을 입력하지 않아 게임이 취소되었습니다.
+            </Modal>
+            <Modal onClose={() => setStatus('connected')} isOpen={alarm === 'player_timeout'}>
+                20초간 타이핑을 입력하지 않아 게임이 취소되었습니다.
+            </Modal>
+        </>
     );
 };
 
@@ -208,3 +206,7 @@ export default Match;
 // 로그 기반으로 소켓 서버에서 틀린 거 만큼 시간 추가해서 결과 보여주기 (약간 이상하지만 OK)
 
 // 몇 초 동안 입력 없을 경우 세션 종료 OK
+
+// 디자인만
+// 메인 페이지
+// 게임 페이지 부분들 레퍼런스 찾아서 적용해보기
