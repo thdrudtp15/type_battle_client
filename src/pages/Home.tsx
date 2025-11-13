@@ -7,7 +7,7 @@ import useSocket from '../hooks/useSocket';
 // import Result from '../components/game/Result';
 // import ConnectingError from '../components/game/ConnectingError';
 // import Connecting from '../components/game/Connecting';
-import Index from '../components/game/Index';
+import Index from '../components/Index';
 // import Matched from '../components/game/Matched';
 // import Match from '../components/game/Match';
 import LiveDemo from '../components/ui/LiveDemo';
@@ -25,7 +25,7 @@ const Game = () => {
         setAlarm,
         // readyCountdown,
         // gameCountdown,
-        // gameStartTime,
+        gameStartTime,
         // elapsedTime,
         // opponentInput,
         // opponentLog,
@@ -50,18 +50,19 @@ const Game = () => {
         !status;
     const matchStatus = status === 'match_start' || status === 'match_result';
 
-    // if (socket) {
-    //     return (
-    //         <Match
-    //             matchRemainingTime={{ matchPlayTime: 60, remainingTime: 50 }}
-    //             sentence={['안녕하세요', '반갑습니다']}
-    //             socket={socket}
-    //             roomId={roomId}
-    //             setStatus={setStatus}
-    //             status={status}
-    //         />
-    //     );
-    // }
+    if (socket) {
+        return (
+            <Match
+                matchRemainingTime={{ matchPlayTime: 60, remainingTime: 50 }}
+                sentence={['안녕하세요', '반갑습니다']}
+                socket={socket}
+                roomId={roomId}
+                setStatus={setStatus}
+                status={status}
+                gameStartTime={gameStartTime}
+            />
+        );
+    }
 
     if (indexStatus) {
         return (
@@ -85,6 +86,7 @@ const Game = () => {
                 roomId={roomId}
                 setStatus={setStatus}
                 status={status}
+                gameStartTime={gameStartTime}
             />
         );
     }

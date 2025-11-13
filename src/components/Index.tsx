@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 
-import Modal from '../ui/Modal';
+import Modal from './ui/Modal';
 
 import type { Socket } from 'socket.io-client';
 
