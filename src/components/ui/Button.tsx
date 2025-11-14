@@ -16,7 +16,7 @@ const Button = ({
         <motion.button
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            whileHover={{ scale: 1.05 }}
+            whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.98 }}
             onClick={onClick}
             disabled={disabled}

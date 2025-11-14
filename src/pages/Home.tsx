@@ -32,8 +32,6 @@ const Game = () => {
         if (status === 'connected') resetGame();
     }, [status]);
 
-    console.log(matchLog?.player.sentence);
-
     const indexStatus = status === 'finding_match' || status === 'connected' || status === 'disconnected' || !status;
     const matchStatus = status === 'match_start' || status === 'match_result' || status === 'found_match';
 

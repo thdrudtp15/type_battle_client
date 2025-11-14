@@ -4,4 +4,6 @@ export type SocketStatus =
     | 'finding_match' // 매칭 요청
     | 'match_start' // 게임 시작
     | 'match_result' // 게임 결과
-    | 'found_match'; // 매칭 찾기 성공 시.
+    | 'found_match' // 매칭 찾기 성공 시.
+    | 'connecting' // 연결 시도 중
+    | 'reconnecting'; // 재연결 시도 중

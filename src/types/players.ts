@@ -5,4 +5,5 @@ export type Players = {
     point: number;
     accuracy: number;
     isCompleted: boolean;
+    finished?: number;
 };

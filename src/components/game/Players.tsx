@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 import type { Players as PlayersType } from '../../types/players';
+import AnimateNumber from '../ui/AnimateNumber';
 
 const CPM = React.memo(() => {
     return (
@@ -27,7 +28,7 @@ const Accuracy = React.memo(({ accuracy }: { accuracy: number }) => {
         <>
             <div className="flex justify-between">
                 <span className="text-[#d1d0c5] font-mono font-bold">정확도</span>
-                <span className="text-[#e2b714] font-mono font-bold">{accuracy} %</span>
+                <AnimateNumber value={accuracy} className="text-[#e2b714] font-mono font-bold" />
             </div>
         </>
     );
@@ -38,7 +39,7 @@ const Score = React.memo(({ score }: { score: number }) => {
         <>
             <div className="flex justify-between">
                 <span className="text-[#d1d0c5] font-mono font-bold">점수</span>
-                <span className="text-[#e2b714] font-mono font-bold">{score} P</span>
+                <AnimateNumber value={score} className="text-[#e2b714] font-mono font-bold" />
             </div>
         </>
     );
@@ -48,7 +49,7 @@ const Progress = React.memo(({ progress }: { progress: number }) => {
     return (
         <div className="flex justify-between">
             <span className="text-[#d1d0c5] font-mono font-bold">진행도</span>
-            <span className="text-[#e2b714] font-mono font-bold">{progress ? progress : 0}%</span>
+            <AnimateNumber value={progress ? progress : 0} className="text-[#e2b714] font-mono font-bold" />
         </div>
     );
 });
