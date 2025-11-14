@@ -2,8 +2,7 @@
 // 콘텍트 누르면 모달 띄우기
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-
-import Modal from './Modal';
+import ContactModal from '../modal/ContactModal';
 
 const Footer = () => {
     const [isContactModalOpen, setIsContactModalOpen] = useState(false);
@@ -12,20 +11,19 @@ const Footer = () => {
         <>
             <footer className="flex items-center gap-4 py-6 text-md  text-bold">
                 <button
-                    className="hover:text-white cursor-pointer transition duration-300 text-sm font-mono"
+                    className="hover:text-[#e2b714] cursor-pointer transition-all duration-200 text-lg font-normal tracking-wider opacity-80 hover:opacity-100"
                     onClick={() => setIsContactModalOpen(true)}
                 >
                     contact
                 </button>
-                <Link to="/" className="hover:text-white cursor-pointer transition duration-300 text-sm font-mono">
+                <Link
+                    to="/"
+                    className="hover:text-[#e2b714] cursor-pointer transition-all duration-200 text-lg font-normal tracking-wider opacity-80 hover:opacity-100"
+                >
                     github
                 </Link>
             </footer>
-            <Modal onClose={() => setIsContactModalOpen(false)} isOpen={isContactModalOpen}>
-                <div>
-                    <h2>Contact</h2>
-                </div>
-            </Modal>
+            <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />
         </>
     );
 };

@@ -10,6 +10,7 @@ import { THROTTLE_TIME } from '../constants/constants';
 import type { Socket } from 'socket.io-client';
 import type { TypingLogType } from '../types/typingLog';
 import type { Players as PlayersType } from '../types/players';
+import type { SocketStatus } from '../types/socketStatus';
 
 type matchRemainingTimeType = {
     matchPlayTime: number;
@@ -22,9 +23,10 @@ type MatchProps = {
     roomId: string | null;
     matchLog: { player: PlayersType; opponent: PlayersType } | null;
     children: React.ReactNode;
+    status: SocketStatus;
 };
 
-const Match = ({ matchRemainingTime, socket, roomId, matchLog, children }: MatchProps) => {
+const Match = ({ matchRemainingTime, socket, roomId, matchLog, children, status }: MatchProps) => {
     const { player } = matchLog || {};
     const { sentence, isCompleted } = player || { sentence: '', isCompleted: false };
     const { matchPlayTime, remainingTime } = matchRemainingTime;
@@ -37,10 +39,15 @@ const Match = ({ matchRemainingTime, socket, roomId, matchLog, children }: Match
 
     const [keyDownCount, setKeyDownCount] = useState<number>(0);
 
+    const fnEnabled = () => {
+        return status !== 'match_start' || !isCompleted;
+    };
+
     //==============
     // 입력 카운트 핸들러
     //==============
     useEffect(() => {
+        if (!fnEnabled()) return;
         const now = Date.now();
         const timeSinceLastEmit = now - lastEmitTimeRef.current;
         if (timeSinceLastEmit >= THROTTLE_TIME) {
@@ -53,7 +60,7 @@ const Match = ({ matchRemainingTime, socket, roomId, matchLog, children }: Match
     // 로그 전송 핸들러
     //==============
     useEffect(() => {
-        if (log.length === 0) return;
+        if (log.length === 0 || !fnEnabled()) return;
         // 로그 전송 (정확도는 서버에서 계산.)
 
         socket.emit('match_log', roomId, log);
@@ -64,6 +71,7 @@ const Match = ({ matchRemainingTime, socket, roomId, matchLog, children }: Match
     //==============
     const handleComplete = useCallback(
         (e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (!fnEnabled()) return;
             if (e.key === 'Enter' && input.length === sentence.length) {
                 console.log('보내기!');
                 setLog((prev) => [
@@ -87,6 +95,7 @@ const Match = ({ matchRemainingTime, socket, roomId, matchLog, children }: Match
     //==============
     const handleKeyDown = useCallback(
         (e: React.KeyboardEvent<HTMLInputElement>) => {
+            if (!fnEnabled()) return;
             const prevValue = input;
             const currentValue = e.currentTarget.value;
             if (prevValue.length < currentValue.length) {
@@ -107,7 +116,16 @@ const Match = ({ matchRemainingTime, socket, roomId, matchLog, children }: Match
                     handleKeyDown={handleKeyDown}
                     inputRef={inputRef}
                     handleComplete={handleComplete}
-                    isCompleted={isCompleted}
+                    disabled={status !== 'match_start' || isCompleted}
+                    placeholder={`${
+                        status === 'match_start' && !isCompleted
+                            ? '여기에 입력해주세요'
+                            : status === 'match_result' || isCompleted
+                            ? '모든 입력이 끝났어요.'
+                            : status === 'found_match'
+                            ? '게임이 곧 시작 됩니다.'
+                            : ''
+                    }`}
                 />
             </div>
             <>{children}</>

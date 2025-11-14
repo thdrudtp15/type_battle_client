@@ -1,5 +1,6 @@
 import Modal from '../ui/Modal';
 
+import React from 'react';
 import type { Players } from '../../types/players';
 
 type ResultModalProps = {
@@ -11,11 +12,11 @@ type ResultModalProps = {
     };
 };
 
-const ResultModal = ({ isOpen, onClose, matchResult }: ResultModalProps) => {
+const ResultModal = React.memo(({ isOpen, onClose, matchResult }: ResultModalProps) => {
     const { player, opponent } = matchResult;
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose}>
+        <Modal isOpen={isOpen} onClose={onClose} title="RESULT">
             <div className="flex gap-4">
                 <div>
                     <p>내 점수</p>
@@ -28,5 +29,5 @@ const ResultModal = ({ isOpen, onClose, matchResult }: ResultModalProps) => {
             </div>
         </Modal>
     );
-};
+});
 export default ResultModal;

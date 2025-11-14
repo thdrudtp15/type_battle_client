@@ -31,6 +31,7 @@ const useSocket = () => {
         setMatchCountdown(0);
         setMatchLog(null);
         setMatchRemainingTime({ matchPlayTime: 0, remainingTime: 0 });
+        setMatchResult(null);
     };
 
     useEffect(() => {
@@ -150,6 +151,7 @@ const useSocket = () => {
         roomId,
         matchLog,
         matchResult,
+        resetGame,
     };
 };
 
