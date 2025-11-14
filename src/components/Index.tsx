@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-
+import Button from './ui/Button';
 import type { Socket } from 'socket.io-client';
 
 type IndexProps = {
@@ -43,11 +43,11 @@ const Index = ({ socket, status, children }: IndexProps) => {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.2 }}
                         className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl mb-8 border ${
-                            isServerEnabled ? 'border-green-500/30 bg-green-500/10' : 'border-[#646669] bg-[#2c2e31]'
+                            isServerEnabled ? 'border-green-500/30 bg-green-500/10' : 'border-red-500/30 bg-red-500/10'
                         }`}
                     >
                         <motion.span
-                            className={`w-2 h-2 rounded-full ${isServerEnabled ? 'bg-green-500' : 'bg-[#646669]'}`}
+                            className={`w-2 h-2 rounded-full ${isServerEnabled ? 'bg-green-500' : 'bg-red-500'}`}
                             animate={
                                 isServerEnabled
                                     ? {
@@ -62,8 +62,8 @@ const Index = ({ socket, status, children }: IndexProps) => {
                                 ease: 'easeInOut',
                             }}
                         />
-                        <span className={`text-sm  ${isServerEnabled ? 'text-green-400' : 'text-[#646669]'}`}>
-                            서버상태 : {isServerEnabled ? '정상' : '비활성화 됨'}
+                        <span className={`text-sm  ${isServerEnabled ? 'text-green-400' : 'text-red-400'}`}>
+                            서버상태 : {isServerEnabled ? '정상' : '비활성'}
                         </span>
                     </motion.div>
 
@@ -112,37 +112,12 @@ const Index = ({ socket, status, children }: IndexProps) => {
                     </motion.ul>
 
                     {/* Buttons */}
-                    <div className="flex gap-4 flex-wrap">
-                        <motion.button
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            whileHover={{
-                                scale: 1.02,
-                                backgroundColor: '#f0c929',
-                            }}
-                            whileTap={{ scale: 0.98 }}
-                            onClick={status === 'connected' ? findMatch : cancelMatch}
-                            disabled={!status}
-                            className="cursor-pointer bg-[#e2b714] text-[#323437] rounded-xl px-8 py-2 text-2xl font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
+                    <div className="flex gap-4">
+                        <Button onClick={status === 'connected' ? findMatch : cancelMatch} disabled={!status}>
                             {status === 'connected' && '매칭하기'}
                             {status === 'finding_match' && '매칭 중...'}
                             {status === 'disconnected' && '서버 연결 중...'}
-                        </motion.button>
-
-                        <motion.button
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            whileHover={{
-                                scale: 1.05,
-                                backgroundColor: '#3f3f46',
-                                borderColor: '#e2b714',
-                            }}
-                            whileTap={{ scale: 0.98 }}
-                            className="cursor-pointer bg-[#2c2e31] text-[#d1d0c5] border-2 border-[#646669] rounded-xl px-8 py-2 text-2xl font-bold transition-colors"
-                        >
-                            연습하기
-                        </motion.button>
+                        </Button>
                     </div>
                 </motion.div>
                 {/** 모달  */}

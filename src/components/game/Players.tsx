@@ -71,7 +71,7 @@ const Players = React.memo(({ matchLog }: PlayersProps) => {
                 className="flex gap-4 w-full mb-10"
             >
                 {/* Player 1 */}
-                <div className="flex-1 bg-[#2c2e31] rounded-xl p-5 border-2 border-[#e2b714]">
+                <div className="flex-1 bg-gray-900/50 rounded-xl p-5 border border-2 border-yellow-500">
                     <CPM />
                     <Accuracy accuracy={matchLog?.player?.accuracy ?? 0} />
                     <Score score={matchLog?.player?.point ?? 0} />
@@ -79,7 +79,7 @@ const Players = React.memo(({ matchLog }: PlayersProps) => {
                 </div>
 
                 {/* Player 2 */}
-                <div className="flex-1 bg-[#2c2e31] rounded-xl p-5 border-2 border-[#646669]">
+                <div className="flex-1 bg-gray-900/50 rounded-xl p-5 border border-2 border-gray-700">
                     <CPM />
                     <Accuracy accuracy={matchLog?.opponent?.accuracy ?? 0} />
                     <Score score={matchLog?.opponent?.point ?? 0} />

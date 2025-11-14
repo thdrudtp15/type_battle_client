@@ -35,7 +35,7 @@ const Modal = ({ children, onClose, isOpen, title }: ModalProps) => {
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         exit={{ scale: 0.95, opacity: 0, y: 10 }}
                         transition={{ duration: 0.15, ease: 'easeOut' }}
-                        className="bg-[#2c2e31] border-2 border-yellow-500 text-[#d1d0c5] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
+                        className="bg-[#151a23] border-2 border-yellow-500 text-[#d1d0c5] rounded-2xl w-full max-w-md shadow-2xl overflow-hidden"
                     >
                         {/* 헤더 */}
                         <div className="px-6 py-4 border-b border-dotted border-b-3 border-[#3a3d42] flex items-center justify-between">

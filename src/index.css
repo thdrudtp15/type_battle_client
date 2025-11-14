@@ -1,1 +1,11 @@
 @import 'tailwindcss';
+
+@layer components {
+    .bg-gradient-dark {
+        background: linear-gradient(to bottom right, #111827, #1f2937, #111827);
+    }
+
+    .bg-modal-dark {
+        background: #151a23;
+    }
+}

@@ -11,16 +11,16 @@ const Footer = () => {
         <>
             <footer className="flex items-center gap-4 py-6 text-md  text-bold">
                 <button
-                    className="hover:text-[#e2b714] cursor-pointer transition-all duration-200 text-lg font-normal tracking-wider opacity-80 hover:opacity-100"
+                    className="hover:text-[#e2b714] cursor-pointer transition-all duration-200 text-lg font-bold tracking-wider opacity-80 hover:opacity-100"
                     onClick={() => setIsContactModalOpen(true)}
                 >
-                    contact
+                    CONTACT
                 </button>
                 <Link
                     to="/"
-                    className="hover:text-[#e2b714] cursor-pointer transition-all duration-200 text-lg font-normal tracking-wider opacity-80 hover:opacity-100"
+                    className="hover:text-[#e2b714] cursor-pointer transition-all duration-200 text-lg font-bold tracking-wider opacity-80 hover:opacity-100"
                 >
-                    github
+                    GITHUB
                 </Link>
             </footer>
             <ContactModal isOpen={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} />

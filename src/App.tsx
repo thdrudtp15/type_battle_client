@@ -8,7 +8,7 @@ import Footer from './components/ui/Footer';
 
 function App() {
     return (
-        <div className="bg-[#323437] px-6">
+        <div className="bg-gradient-dark px-6">
             <div className="max-w-4xl mx-auto flex flex-col min-h-screen ">
                 <Header />
                 <main className="flex-1">

@@ -29,7 +29,7 @@ const Input = React.memo(
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3 }}
-                className="w-full bg-[#2c2e31] border-2 border-[#646669] 
+                className="w-full bg-gray-900/50 border border-2 border-gray-700 
                                rounded-xl p-4 text-[#d1d0c5] text-2xl font-mono 
                                focus:border-[#e2b714] focus:outline-none transition-colors"
                 type="text"

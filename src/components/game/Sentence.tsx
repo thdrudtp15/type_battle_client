@@ -15,7 +15,7 @@ const Sentence = React.memo(({ sentence, input, isCompleted }: SentenceProps) =>
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="bg-[#2c2e31] rounded-xl p-10 mb-6 min-h-[200px] flex items-center"
+            className="bg-gray-900/50 border border-2 border-gray-700 rounded-xl p-10 mb-6 min-h-[200px] flex items-center"
         >
             {!isCompleted ? (
                 <p className="text-3xl font-mono text-[#646669] leading-relaxed">
