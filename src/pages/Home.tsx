@@ -17,11 +17,13 @@ const Game = () => {
         roomId,
         setStatus,
         setAlarm,
+        matchStartTime,
         matchCountdown,
         matchRemainingTime,
         matchLog,
         matchResult,
         resetGame,
+        opponentCpm,
     } = useSocket();
 
     //==============
@@ -52,6 +54,8 @@ const Game = () => {
                 roomId={roomId}
                 matchLog={matchLog}
                 status={status}
+                matchStartTime={matchStartTime}
+                opponentCpm={opponentCpm}
             >
                 <ResultModal
                     isOpen={status === 'match_result' && !!matchResult}

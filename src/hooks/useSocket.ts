@@ -9,29 +9,30 @@ const useSocket = () => {
     const [status, setStatus] = useState<SocketStatus>('disconnected');
     const [roomId, setRoomId] = useState<string | null>(null);
     const [alarm, setAlarm] = useState<string | null>(null);
-    const [gameCountdown, setGameCountdown] = useState<number>(0);
-    const [gameStartTime, setGameStartTime] = useState<number | null>(null);
+    const [matchStartTime, setMatchStartTime] = useState<number | null>(null);
     const [matchCountdown, setMatchCountdown] = useState<number>(0);
+    const [matchLog, setMatchLog] = useState<{ player: Players; opponent: Players } | null>(null);
     const [matchRemainingTime, setMatchRemainingTime] = useState<{ matchPlayTime: number; remainingTime: number }>({
         matchPlayTime: 0,
         remainingTime: 0,
     });
-
-    const [matchLog, setMatchLog] = useState<{ player: Players; opponent: Players } | null>(null);
     const [matchResult, setMatchResult] = useState<{
         player: Players;
         opponent: Players;
     } | null>(null);
 
+    const [opponentCpm, setOpponentCpm] = useState<number>(0);
+
     const resetGame = () => {
         setStatus('connected');
         setRoomId(null);
-        setGameCountdown(0);
-        setGameStartTime(null);
+
+        setMatchStartTime(null);
         setMatchCountdown(0);
         setMatchLog(null);
         setMatchRemainingTime({ matchPlayTime: 0, remainingTime: 0 });
         setMatchResult(null);
+        setOpponentCpm(0);
     };
 
     useEffect(() => {
@@ -105,9 +106,9 @@ const useSocket = () => {
         });
 
         socket.on('match_start', (data) => {
-            const { player, opponent, gameStartTime } = data;
+            const { player, opponent, matchStartTime } = data;
             setMatchLog({ player, opponent });
-            setGameStartTime(gameStartTime);
+            setMatchStartTime(matchStartTime);
             setStatus('match_start');
         });
 
@@ -115,6 +116,11 @@ const useSocket = () => {
             const { player, opponent } = data;
             console.log(data);
             setMatchLog({ player, opponent });
+        });
+
+        socket.on('opponent_cpm', (data) => {
+            const { cpm } = data;
+            setOpponentCpm(cpm);
         });
 
         socket.on('match_countdown', (data) => {
@@ -143,8 +149,7 @@ const useSocket = () => {
         alarm,
         setAlarm,
         setStatus,
-        gameCountdown,
-        gameStartTime,
+        matchStartTime,
         matchCountdown,
         matchRemainingTime,
         status,
@@ -152,6 +157,7 @@ const useSocket = () => {
         matchLog,
         matchResult,
         resetGame,
+        opponentCpm,
     };
 };
 

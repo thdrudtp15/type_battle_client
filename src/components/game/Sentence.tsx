@@ -8,8 +8,6 @@ type SentenceProps = {
 };
 
 const Sentence = React.memo(({ sentence, input, isCompleted }: SentenceProps) => {
-    console.log(input.length);
-
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}

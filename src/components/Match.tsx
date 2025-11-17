@@ -5,7 +5,7 @@ import Input from './game/Input';
 import Sentence from './game/Sentence';
 import Players from './game/Players';
 
-import { THROTTLE_TIME } from '../constants/constants';
+import { ALLOWED_KEYS } from '../constants/constants';
 
 import type { Socket } from 'socket.io-client';
 import type { TypingLogType } from '../types/typingLog';
@@ -24,15 +24,25 @@ type MatchProps = {
     matchLog: { player: PlayersType; opponent: PlayersType } | null;
     children: React.ReactNode;
     status: SocketStatus;
+    matchStartTime: number | null;
+    opponentCpm: number;
 };
 
-const Match = ({ matchRemainingTime, socket, roomId, matchLog, children, status }: MatchProps) => {
+const Match = ({
+    matchRemainingTime,
+    socket,
+    roomId,
+    matchLog,
+    children,
+    status,
+    matchStartTime,
+    opponentCpm,
+}: MatchProps) => {
     const { player } = matchLog || {};
     const { sentence, isCompleted } = player || { sentence: '', isCompleted: false };
     const { matchPlayTime, remainingTime } = matchRemainingTime;
 
     const inputRef = useRef<HTMLInputElement>(null);
-    const lastEmitTimeRef = useRef<number>(0);
 
     const [input, setInput] = useState<string>('');
     const [log, setLog] = useState<TypingLogType[]>([]);
@@ -42,19 +52,6 @@ const Match = ({ matchRemainingTime, socket, roomId, matchLog, children, status 
     const fnEnabled = () => {
         return status !== 'match_start' || !isCompleted;
     };
-
-    //==============
-    // 입력 카운트 핸들러
-    //==============
-    useEffect(() => {
-        if (!fnEnabled()) return;
-        const now = Date.now();
-        const timeSinceLastEmit = now - lastEmitTimeRef.current;
-        if (timeSinceLastEmit >= THROTTLE_TIME) {
-            socket.emit('match_cpm', roomId);
-            lastEmitTimeRef.current = now;
-        }
-    }, [input]);
 
     //==============
     // 로그 전송 핸들러
@@ -73,7 +70,6 @@ const Match = ({ matchRemainingTime, socket, roomId, matchLog, children, status 
         (e: React.KeyboardEvent<HTMLInputElement>) => {
             if (!fnEnabled()) return;
             if (e.key === 'Enter' && input.length === sentence.length) {
-                console.log('보내기!');
                 setLog((prev) => [
                     ...prev,
                     {
@@ -86,21 +82,22 @@ const Match = ({ matchRemainingTime, socket, roomId, matchLog, children, status 
                     setInput('');
                 }
             }
+
+            if (e.code.startsWith('Key') || ALLOWED_KEYS.includes(e.code)) {
+                setKeyDownCount((prev) => prev + 1);
+            }
         },
+
         [setLog, inputRef, sentence, input]
     );
 
     //==============
-    // 키 다운운 핸들러
+    // 키 다운 핸들러
     //==============
     const handleKeyDown = useCallback(
         (e: React.KeyboardEvent<HTMLInputElement>) => {
             if (!fnEnabled()) return;
-            const prevValue = input;
             const currentValue = e.currentTarget.value;
-            if (prevValue.length < currentValue.length) {
-                setKeyDownCount(keyDownCount + 1);
-            }
             setInput(currentValue);
         },
         [keyDownCount, input]
@@ -110,7 +107,26 @@ const Match = ({ matchRemainingTime, socket, roomId, matchLog, children, status 
         <div className="flex items-center justify-center">
             <div className="w-full">
                 <MatchRemainingProgress matchPlayTime={matchPlayTime} remainingTime={remainingTime} />
-                <Players matchLog={matchLog} />
+                <Players>
+                    <Players.Player>
+                        <Players.Cpm
+                            keyDownCount={keyDownCount}
+                            matchStartTime={matchStartTime}
+                            socket={socket}
+                            roomId={roomId}
+                            isCompleted={player?.isCompleted}
+                        />
+                        <Players.Accuracy accuracy={matchLog?.player?.accuracy ?? 0} />
+                        <Players.Score score={matchLog?.player?.point ?? 0} />
+                        <Players.Progress progress={matchLog?.player?.progress ?? 0} />
+                    </Players.Player>
+                    <Players.Player>
+                        <Players.Cpm opponentCpm={opponentCpm} />
+                        <Players.Accuracy accuracy={matchLog?.opponent?.accuracy ?? 0} />
+                        <Players.Score score={matchLog?.opponent?.point ?? 0} />
+                        <Players.Progress progress={matchLog?.opponent?.progress ?? 0} />
+                    </Players.Player>
+                </Players>
                 <Sentence sentence={sentence} input={input} isCompleted={isCompleted} />
                 <Input
                     handleKeyDown={handleKeyDown}

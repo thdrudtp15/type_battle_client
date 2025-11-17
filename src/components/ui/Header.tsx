@@ -1,3 +1,4 @@
+import { motion } from 'framer-motion';
 import { BiSolidVolumeMute } from 'react-icons/bi';
 import { BiSolidVolumeFull } from 'react-icons/bi';
 import { useState } from 'react';
@@ -17,9 +18,13 @@ const Header = () => {
             <p className="text-2xl font-bold text-yellow-500">TypeBattle</p>
             <button onClick={toggleMute} className="cursor-pointer">
                 {isMuted ? (
-                    <BiSolidVolumeMute className="w-6 h-6" />
+                    <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.3 }}>
+                        <BiSolidVolumeMute className="w-6 h-6" />
+                    </motion.div>
                 ) : (
-                    <BiSolidVolumeFull className="w-6 h-6 text-yellow-500" />
+                    <motion.div whileHover={{ scale: 1.1 }} transition={{ duration: 0.3 }}>
+                        <BiSolidVolumeFull className="w-6 h-6 text-yellow-500" />
+                    </motion.div>
                 )}
             </button>
         </header>

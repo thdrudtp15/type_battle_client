@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const AnimateNumber = ({ value, className }: { value: number; className?: string }) => {
+const AnimateNumber = ({ value, className, prefix = '' }: { value: number; className?: string; prefix?: string }) => {
     return (
         <div style={{ overflow: 'hidden' }}>
             <AnimatePresence mode="popLayout">
@@ -13,7 +13,7 @@ const AnimateNumber = ({ value, className }: { value: number; className?: string
                     transition={{ duration: 0.3 }}
                     className={className}
                 >
-                    {value}
+                    {value} {prefix}
                 </motion.div>
             </AnimatePresence>
         </div>
