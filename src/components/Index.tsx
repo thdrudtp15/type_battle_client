@@ -91,7 +91,7 @@ const Index = ({ socket, status, children }: IndexProps) => {
                                 transition={{ delay: 0.5 }}
                                 className="text-2xl text-[#d1d0c5] font-medium leading-relaxed"
                             >
-                                실시간으로 상대방과 타이핑 속도와 정확도를 겨루는 게임
+                                실시간으로 상대방과 타이핑 실력을 겨루는 타이핑 배틀 게임입니다.
                             </motion.p>
                             <motion.p
                                 initial={{ opacity: 0, y: 5 }}
@@ -99,7 +99,7 @@ const Index = ({ socket, status, children }: IndexProps) => {
                                 transition={{ delay: 0.6 }}
                                 className="text-base text-[#646669] leading-relaxed max-w-2xl"
                             >
-                                WebSocket 기반 실시간 통신으로 구현되어, 타이핑하는 모든 순간이 즉시 반영됩니다.
+                                빠른 타이핑 속도와 높은 정확도로 승리하세요!
                             </motion.p>
                         </div>
 
@@ -120,13 +120,13 @@ const Index = ({ socket, status, children }: IndexProps) => {
                         >
                             {[
                                 {
-                                    title: '실시간 통신',
-                                    desc: 'Socket.io 기반 즉각 동기화',
+                                    title: '실시간 경쟁',
+                                    desc: '상대방과 동시에 타이핑하며 실시간으로 점수를 비교합니다',
                                     delay: 0.85,
                                 },
                                 {
-                                    title: '부드러운 애니메이션',
-                                    desc: 'Framer Motion UI 전환',
+                                    title: '정확한 통계',
+                                    desc: '정확도, 점수, 진행도를 실시간으로 확인할 수 있습니다',
                                     delay: 0.9,
                                 },
                             ].map((item, index) => (

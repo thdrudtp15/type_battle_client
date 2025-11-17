@@ -10,13 +10,13 @@ const Footer = () => {
     return (
         <>
             <footer className="flex items-center gap-6 py-6">
-                <button
+                {/* <button
                     className="text-[#646669] hover:text-[#e2b714] cursor-pointer transition-all duration-300 text-xl font-semibold tracking-widest uppercase relative group"
                     onClick={() => setIsContactModalOpen(true)}
                 >
                     <span className="relative z-10">CONTACT</span>
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-[#e2b714] group-hover:w-full transition-all duration-300" />
-                </button>
+                </button> */}
                 <Link
                     to="https://github.com/thdrudtp15/typing_battle"
                     rel="noopener noreferrer"

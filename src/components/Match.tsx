@@ -108,7 +108,7 @@ const Match = ({
             <div className="w-full">
                 <MatchRemainingProgress matchPlayTime={matchPlayTime} remainingTime={remainingTime} />
                 <Players>
-                    <Players.Player>
+                    <Players.Player focus={true}>
                         <Players.Cpm
                             keyDownCount={keyDownCount}
                             matchStartTime={matchStartTime}

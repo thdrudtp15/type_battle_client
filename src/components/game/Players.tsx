@@ -19,45 +19,51 @@ type CpmProps = {
 
 const Cpm = React.memo(({ keyDownCount, matchStartTime, socket, roomId, opponentCpm, isCompleted }: CpmProps) => {
     const lastEmitTimeRef = useRef<number>(0);
-
     const [cpm, setCpm] = useState(0);
+
+    // 최대 CPM 기준 설정 (게이지 100% 기준)
+    const MAX_CPM = 1200; // 또는 600, 자유롭게 조정
 
     //==============
     // CPM 계산
     //==============
     useEffect(() => {
         if (!matchStartTime || !keyDownCount || isCompleted) return;
-        // 즉시 CPM 계산
+
         if (keyDownCount > 0) {
             setCpm(getCpm(keyDownCount, matchStartTime));
         }
 
-        // 입력이 멈춰도 시간은 흐르므로 계속 업데이트
         const interval = setInterval(() => {
             setCpm(getCpm(keyDownCount, matchStartTime));
         }, 500);
 
         return () => clearInterval(interval);
-    }, [keyDownCount, isCompleted]);
+    }, [keyDownCount, isCompleted, matchStartTime]);
 
     //==============
     // CPM 전송
     //==============
     useEffect(() => {
         if (!socket || !roomId || !matchStartTime) return;
-        else if (isCompleted) {
-            // 게임 종료 시 마지막으로 cpm 전송
+
+        if (isCompleted) {
             socket.emit('match_cpm', roomId, cpm);
+            return;
         }
+
         const now = Date.now();
         const timeSinceLastEmit = now - lastEmitTimeRef.current;
-        if (timeSinceLastEmit >= THROTTLE_TIME) {
-            if (cpm < 1) console.log('오류 발생!');
 
+        if (timeSinceLastEmit >= THROTTLE_TIME) {
             socket.emit('match_cpm', roomId, cpm);
             lastEmitTimeRef.current = now;
         }
-    }, [cpm, isCompleted]);
+    }, [cpm, isCompleted, socket, roomId, matchStartTime]);
+
+    const getGaugePercent = (cpm: number) => {
+        return Math.min((cpm / MAX_CPM) * 100, 100);
+    };
 
     return (
         <>
@@ -65,12 +71,14 @@ const Cpm = React.memo(({ keyDownCount, matchStartTime, socket, roomId, opponent
                 <span className="text-[#d1d0c5] font-mono font-bold">타수(타/분)</span>
                 <span className="text-[#e2b714] font-mono font-bold">{opponentCpm || cpm}</span>
             </div>
+
+            {/* 내 게이지 */}
             <div className="h-2 bg-[#181a1b] rounded-full overflow-hidden mb-3">
                 <motion.div
                     className="h-full bg-[#e2b714] rounded-full"
                     initial={{ width: 0 }}
-                    animate={{ width: 45 }}
-                    transition={{ duration: 0.5 }}
+                    animate={{ width: `${getGaugePercent(opponentCpm || cpm)}%` }}
+                    transition={{ duration: 0.3, ease: 'easeOut' }}
                 />
             </div>
         </>
@@ -124,8 +132,17 @@ const PlayersWrap = React.memo(({ children }: { children: React.ReactNode }) => 
     );
 });
 
-const Player = React.memo(({ children }: { children: React.ReactNode }) => {
-    return <div className="flex-1 bg-gray-900/50 rounded-xl p-5 border border-2 border-yellow-500">{children}</div>;
+const Player = React.memo(({ children, focus = false }: { children: React.ReactNode; focus?: boolean }) => {
+    return (
+        <div
+            className={`flex-1 bg-gray-900/50 rounded-xl p-5 border border-2 ${
+                focus ? 'border-yellow-500' : 'border-gray-500'
+            }`}
+        >
+            <p className="text-sm text-[#646669] font-mono font-bold mb-2">{focus ? '나' : '상대'}</p>
+            {children}
+        </div>
+    );
 });
 
 const Players = Object.assign(React.memo(PlayersWrap), {

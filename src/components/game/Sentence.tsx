@@ -5,6 +5,7 @@ type SentenceProps = {
     sentence: string;
     input: string;
     isCompleted: boolean;
+    className?: string;
 };
 
 const Sentence = React.memo(({ sentence, input, isCompleted }: SentenceProps) => {
