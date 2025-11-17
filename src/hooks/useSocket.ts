@@ -26,7 +26,6 @@ const useSocket = () => {
     const resetGame = () => {
         setStatus('connected');
         setRoomId(null);
-
         setMatchStartTime(null);
         setMatchCountdown(0);
         setMatchLog(null);
@@ -35,7 +34,7 @@ const useSocket = () => {
         setOpponentCpm(0);
     };
 
-    const production = import.meta.env.MODE !== 'production';
+    const production = import.meta.env.MODE === 'production';
     const serverUrl = production ? import.meta.env.VITE_SERVER_URL : 'http://localhost:3001';
 
     useEffect(() => {
