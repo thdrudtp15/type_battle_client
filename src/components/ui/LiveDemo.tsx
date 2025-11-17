@@ -57,7 +57,7 @@ const LiveDemo = () => {
                 }
                 return prev;
             });
-        }, 400);
+        }, 200);
 
         return () => {
             clearInterval(inputInterval);

@@ -35,8 +35,11 @@ const useSocket = () => {
         setOpponentCpm(0);
     };
 
+    const production = import.meta.env.MODE !== 'production';
+    const serverUrl = production ? import.meta.env.VITE_SERVER_URL : 'http://localhost:3001';
+
     useEffect(() => {
-        const socket = io('http://localhost:3001', {
+        const socket = io(serverUrl, {
             reconnection: true, // 재연결 여부
             reconnectionAttempts: 5, // 재연결 시도 횟수
             reconnectionDelay: 1000, // 재연결 딜레이
