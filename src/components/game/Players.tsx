@@ -136,7 +136,7 @@ const Player = React.memo(({ children, focus = false }: { children: React.ReactN
     return (
         <div
             className={`flex-1 bg-gray-900/50 rounded-xl p-5 border border-2 ${
-                focus ? 'border-yellow-500' : 'border-gray-500'
+                focus ? 'border-yellow-500' : 'border-gray-700'
             }`}
         >
             <p className="text-sm text-[#646669] font-mono font-bold mb-2">{focus ? '나' : '상대'}</p>
