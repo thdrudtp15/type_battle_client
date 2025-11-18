@@ -8,6 +8,7 @@ import Match from '../components/Match';
 import ResultModal from '../components/modal/ResultModal';
 import CanceledMatchModal from '../components/modal/CanceledMatchModal';
 import FoundMatchModal from '../components/modal/FoundMatchModal';
+import FirstVisitModal from '../components/modal/FirstVisitModal';
 
 const Game = () => {
     const {
@@ -44,6 +45,7 @@ const Game = () => {
                     <CanceledMatchModal isOpen={alarm === 'opponent_disconnected'} onClose={() => setAlarm(null)} />
                 </Index>
                 <LiveDemo />
+                <FirstVisitModal />
             </div>
         );
     } else if (matchStatus && socket) {
