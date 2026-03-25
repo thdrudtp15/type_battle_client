@@ -7,7 +7,16 @@ import MatchRemainingProgress from '../game/MatchRemainingProgress';
 import Players from '../game/Players';
 import Sentence from '../game/Sentence';
 
-const SENTENCES = ['캐리비안의 해적', '은밀하게 위대하게', '모두의 마블', '왕의 검'];
+const SENTENCES = [
+    '천리 길도 한 걸음부터 시작한다',
+    '백문이 불여일견이라 직접 보는 것이 가장 확실하다',
+    '소 잃고 외양간 고친다는 말이 있다',
+    '호랑이도 제 말 하면 온다더니',
+    '될성부른 나무는 떡잎부터 알아본다',
+    '가는 말이 고와야 오는 말이 곱다',
+    '티끌 모아 태산이라고 작은 것도 소중하다',
+    '낮말은 새가 듣고 밤말은 쥐가 듣는다',
+];
 
 const LiveDemo = () => {
     const inputRef = useRef<HTMLInputElement>(null);
